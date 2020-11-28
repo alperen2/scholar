@@ -59,7 +59,7 @@ const App = () => {
         type: "success",
         duration: 3000
       })
-      setText(recognazedText.replace(/\n/g," ").replace(/-/g,"")))
+      setText(recognazedText.replace(/\n/g," ").replace(/-/g,""))
       setProgress(0)
     });
 
