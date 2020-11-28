@@ -8,6 +8,10 @@ target 'scholar' do
 
   use_react_native!(:path => config["reactNativePath"])
 
+  pod 'ReactNativeART', :path => '../node_modules/@react-native-community/art'
+
+  pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
+
   target 'scholarTests' do
     inherit! :complete
     # Pods for testing
