@@ -52,7 +52,7 @@ const App = () => {
   
   const recognazeText = async (path) => {
     await TesseractOcr.recognize(path, LANG_TURKISH, tessOptions).then(recognazedText => {
-      Clipboard.setString(recognazedText.replace(/\n/g," ").replace(/-/g,"")));
+      Clipboard.setString(recognazedText.replace(/\n/g," ").replace(/-/g,""));
       Toast.show({
         text: "Metin panoya kopyalandı",
         buttonText: "Ok",
