@@ -6,29 +6,75 @@
  * @flow strict-local
  */
 
-import { Button, Fab, Text, Textarea, View } from 'native-base';
+import { Button, Fab, Root, Textarea, Toast, View } from 'native-base';
 import React, { useState } from 'react';
 import {
+  PermissionsAndroid,
   StyleSheet,
 } from 'react-native';
 import * as Progress from 'react-native-progress';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ImageCropPicker from 'react-native-image-crop-picker';
+import TesseractOcr, { LANG_TURKISH, useEventListener } from 'react-native-tesseract-ocr';
+import Clipboard from '@react-native-community/clipboard';
+
+
+const tessOptions = {};
+
+
+
+const getPermissions = async () => {
+  const permissions = await PermissionsAndroid.requestMultiple([
+    "android.permission.WRITE_EXTERNAL_STORAGE",
+    "android.permission.READ_EXTERNAL_STORAGE"
+  ])
+
+  const a = Object.values(permissions).filter(d => d === "granted");
+  if (a.length === 2) return true
+  else {
+    Toast.show({
+      text: "Eğer geçerli izinleri vermezseniz, uygulama doğru çalışamayacaktır",
+      buttonText: "Tamam",
+      duration: 3000
+    });
+    return false;
+  }
+}
 
 const App = () => {
-  const [loading, setLoading] = useState(true);
   const [fabActive, setFabActive] = useState(false);
   const [img, setImg] = useState();
+  const [text, setText] = useState()
+  const [progress, setProgress] = useState(0);
+  useEventListener('onProgressChange', (p) => {
+    setProgress(p.percent / 100);
+  });
+  
+  const recognazeText = async (path) => {
+    await TesseractOcr.recognize(path, LANG_TURKISH, tessOptions).then(recognazedText => {
+      Clipboard.setString(recognazedText.replace(/\n/g," ").replace(/-/g,"")));
+      Toast.show({
+        text: "Metin panoya kopyalandı",
+        buttonText: "Ok",
+        type: "success",
+        duration: 3000
+      })
+      setText(recognazedText.replace(/\n/g," ").replace(/-/g,"")))
+      setProgress(0)
+    });
+
+  }
 
   const imageFromCamera = async () => {
     try {
-      await ImageCropPicker.openCamera({
-        cropping: true,
-        freeStyleCropEnabled: true,
-      }).then(image => {
-        console.log(image);
-        setImg(image.path)
-      })
+      if (getPermissions()) {
+        await ImageCropPicker.openCamera({
+          cropping: true,
+          freeStyleCropEnabled: true,
+        }).then(image => {
+          recognazeText(image.path)
+        })
+      }
     }
     catch (error) {
       console.log(error)
@@ -37,37 +83,39 @@ const App = () => {
 
   const imageFromGallery = async () => {
     try {
-      await ImageCropPicker.openPicker({
-        cropping: true,
-        freeStyleCropEnabled: true,
-      }).then(image => {
-        console.log(image);
-        setImg(image.path)
-      })
+      if (getPermissions()) {
+        await ImageCropPicker.openPicker({
+          cropping: true,
+          freeStyleCropEnabled: true,
+        }).then(image => {
+          recognazeText(image.path)
+        })
+      }
     }
     catch (error) {
       console.log(error)
     }
   }
 
-
   return (
-    <>
+    <Root>
       <View style={styles.textWrapper}>
         {
-          loading ?
+          progress ?
             <Progress.Circle
               size={50}
               indeterminate={false}
               showsText={true}
               allowFontScaling={true}
-              progress={0.20}
+              progress={progress}
             /> :
             <Textarea
-              rowSpan={10}
+              rowSpan={20}
               bordered
-              placeholder="Textarea"
-              value="Lorem Ipsum, dizgi ve baskı endüstrisinde kullanılan mıgır metinlerdir. Lorem Ipsum, adı bilinmeyen bir matbaacının bir hurufat numune kitabı oluşturmak üzere bir yazı galerisini alarak karıştırdığı 1500'lerden beri endüstri standardı sahte metinler olarak kullanılmıştır. Beşyüz yıl boyunca varlığını sürdürmekle kalmamış, aynı zamanda pek değişmeden elektronik dizgiye de sıçramıştır. 1960'larda Lorem Ipsum pasajları da içeren Letraset yapraklarının yayınlanması ile ve yakın zamanda Aldus PageMaker gibi Lorem Ipsum sürümleri içeren masaüstü yayıncılık yazılımları ile popüler olmuştur." />
+              placeholder="Bir yazının fotoğrafını çekin ve çıktıyı burada görün."
+              value={text}
+              style={styles.textarea}
+            />
         }
       </View>
       <View>
@@ -87,7 +135,7 @@ const App = () => {
           </Button>
         </Fab>
       </View>
-    </>
+    </Root>
   );
 };
 
@@ -99,6 +147,9 @@ const styles = StyleSheet.create({
     width: "90%",
     marginTop: 20
   },
+  textarea: {
+    width: "100%"
+  }
 });
 
 export default App;

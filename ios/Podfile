@@ -14,6 +14,10 @@ target 'scholar' do
 
   pod 'RNImageCropPicker', :path => '../node_modules/react-native-image-crop-picker'
 
+  pod 'react-native-tesseract-ocr', :path => '../node_modules/react-native-tesseract-ocr'
+
+  pod 'RNCClipboard', :path => '../node_modules/@react-native-community/clipboard'
+
   target 'scholarTests' do
     inherit! :complete
     # Pods for testing
