@@ -12,13 +12,23 @@ import {
   StyleSheet,
 } from 'react-native';
 import * as Progress from 'react-native-progress';
-import {Surface, Shape} from '@react-native-community/art';
 import Icon from 'react-native-vector-icons/FontAwesome';
-
+import ImageCropPicker from 'react-native-image-crop-picker';
 
 const App = () => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [fabActive, setFabActive] = useState(false);
+  
+  const imageFromCamera = async () => {
+    await ImageCropPicker.openCamera({
+      cropping: true,
+      freeStyleCropEnabled:true,
+    }).then(image => {
+      console.log(image);
+    })
+  }
+  
+  
   return (
     <>
       <View style={styles.textWrapper}>
@@ -47,7 +57,7 @@ const App = () => {
             position="bottomRight"
             onPress={() => setFabActive(!fabActive)}>
             <Icon name="plus" />
-            <Button style={{ backgroundColor: 'lightblue' }}>
+            <Button style={{ backgroundColor: 'lightblue' }} onPress={imageFromCamera}>
               <Icon name="camera" />
             </Button>
             <Button style={{ backgroundColor: 'lightblue' }}>
